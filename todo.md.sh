@@ -3,7 +3,7 @@ SEARCHTEXT="TODO"
 ROOT=$(git rev-parse --show-toplevel)
 FILE="todo.md"
 
-while getopts "ohf:t:" option; do
+while getopts "ohlf:t:" option; do
     case $option in
         'o' )
             STDOUT=true
@@ -11,12 +11,19 @@ while getopts "ohf:t:" option; do
         'h' )
             echo "$(basename $0) - generate a todo file based on your code"
             echo "---"
-            echo "  -h - display this help"
-            echo "  -o - print output to STDOUT"
+            echo    "  -h - display this help"
+            echo -n "  -l - LIVE MODE this will add the generated file to your "
+            echo    "staged changes."
+            echo -n "       Use this in the git hook. Off by default "
+            echo    "for playing around in the terminal"
+            echo    "  -o - print output to STDOUT"
             echo -n "  -f - write to this file (defaults to todo.md and path "
-            echo "starts at the repo's root)"
-            echo "  -t - text to search for (defaults to TODO)"
+            echo    "starts at the repo's root)"
+            echo    "  -t - text to search for (defaults to TODO)"
             exit
+        ;;
+        'l' )
+            LIVEMODE=true
         ;;
         'f' )
             FILE=$OPTARG
@@ -27,6 +34,11 @@ while getopts "ohf:t:" option; do
     esac
 done
 
+if [ $STDOUT ] && [ $LIVEMODE ]; then
+    echo "-o and -l can't be used together! Ignoring -l" >&2
+    unset LIVEMODE
+fi
+
 OUTFILE="$ROOT/$FILE"
 if [ -z $STDOUT ]; then
     exec 1>$OUTFILE
@@ -35,7 +47,8 @@ fi
 echo "## To Do"
 
 current_file=''
-IFS=$'\r\n' tasks=($($(which git) grep -In --full-name $SEARCHTEXT $ROOT | grep -v $FILE))
+IFS=$'\r\n' tasks=($(git grep -In --full-name $SEARCHTEXT $ROOT | grep -v $FILE))
+# -I - skip binaries
 # -n - include line numbers
 # --full-name - the full path (starting from the repo root)
 
@@ -56,3 +69,9 @@ for task in ${tasks[@]}; do
 done
 
 echo "######Generated using [todo.md](https://github.com/charlesthomas/todo.md)"
+
+if [ -z $LIVEMODE ]; then
+    exit
+fi
+
+$(git add $OUTFILE)
