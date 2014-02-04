@@ -21,11 +21,11 @@ Examples
 
 ## Vanilla
 	todo.md.sh
-Finds all records matching "TODO" **(always case insensitive)**, and generates a file in the repo root titled ``todo.md``. Does ***NOT*** add this file to your repo's staged changes.
+Finds all records matching "TODO", and generates a file in the repo root titled ``todo.md``. Does ***NOT*** add this file to your repo's staged changes.
 
 ## Different Search Term
 	todo.md.sh -t FIXME
-Finds all records matching "FIXME" **(still case insensitive)**, and generates a file called ``todo.md``.
+Finds all records matching "FIXME", and generates a file called ``todo.md``.
 
 ## Print to Screen
 	todo.md.sh -o
