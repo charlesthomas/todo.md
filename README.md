@@ -54,4 +54,4 @@ You can pass any options **other than -o and -h** to this command. However, if y
 
 ### You probably don't want to do this for HUGE repos, or it will significantly slow down the amount of time it takes to run ``git commit``.
 
-### Make sure ``todo.md.sh`` has executable permissions or it won't work inside the hook.
+### Make sure ***both*** ``todo.md.sh`` ***and*** ``.git/hooks/pre-commit`` have executable permissions or todo.md.sh won't work inside the hook.
