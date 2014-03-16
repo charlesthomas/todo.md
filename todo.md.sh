@@ -1,9 +1,10 @@
 #!/bin/bash
 SEARCHTEXT="TODO"
 ROOT=$(git rev-parse --show-toplevel)
-FILE="todo.md"
+OUTFILE="todo.md"
+EXCLUDE=''
 
-while getopts "ohlf:t:" option; do
+while getopts "ohlf:t:e:i:" option; do
     case $option in
         'o' )
             STDOUT=true
@@ -20,26 +21,45 @@ while getopts "ohlf:t:" option; do
             echo -n "  -f - write to this file (defaults to todo.md and path "
             echo    "starts at the repo's root)"
             echo    "  -t - text to search for (defaults to TODO)"
+            echo    "  -e - exclude pattern"
+            echo    "  -i - include patter"
             exit
         ;;
         'l' )
             LIVEMODE=true
         ;;
         'f' )
-            FILE=$OPTARG
+            OUTFILE=$OPTARG
         ;;
         't' )
             SEARCHTEXT=$OPTARG
         ;;
+        'e' )
+            EXCLUDE="$EXCLUDE$OPTARG|"
+        ;;
+        'i' )
+            if [[ -z $INCLUDE ]]; then
+                INCLUDE=$OPTARG
+            else
+                INCLUDE="$INCLUDE|$OPTARG"
+            fi
+        ;;
     esac
 done
+
+if [[ $INCLUDE ]] && [[ $EXCLUDE ]]; then
+    echo "-i and -e can't be used together!"
+    exit 1
+fi
+
+EXCLUDE=$EXCLUDE$OUTFILE
 
 if [ $STDOUT ] && [ $LIVEMODE ]; then
     echo "-o and -l can't be used together! Ignoring -l" >&2
     unset LIVEMODE
 fi
 
-OUTFILE="$ROOT/$FILE"
+OUTFILE="$ROOT/$OUTFILE"
 if [ -z $STDOUT ]; then
     exec 1>$OUTFILE
 fi
@@ -47,7 +67,11 @@ fi
 echo "## To Do"
 
 current_file=''
-IFS=$'\r\n' tasks=($(git grep -In --full-name $SEARCHTEXT $ROOT | grep -v $FILE))
+if [[ -z $INCLUDE ]]; then
+    IFS=$'\r\n' tasks=($(git grep -In --full-name $SEARCHTEXT $ROOT | egrep -v "($EXCLUDE)"))
+else
+    IFS=$'\r\n' tasks=($(git grep -In --full-name $SEARCHTEXT $ROOT | egrep "($INCLUDE)"))
+fi
 # -I - skip binaries
 # -n - include line numbers
 # --full-name - the full path (starting from the repo root)
