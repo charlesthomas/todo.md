@@ -1,5 +1,6 @@
-todo.md
--------
+[![MIT Licence](https://badges.frapsoft.com/os/mit/mit.png?v=103)](https://opensource.org/licenses/mit-license.php)
+
+# todo.md
 
 Generate a todo.md file based on TODO comments in your git repo.
 
